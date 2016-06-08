@@ -6,6 +6,8 @@
 
 # kit-image-deployer
 [ ![Codeship Status for InVisionApp/kit-image-deployer](https://codeship.com/projects/37301840-0ff1-0134-c5dd-5e067c09569b/status?branch=master)](https://codeship.com/projects/156829)
+[![Docker Repository on Quay](https://quay.io/repository/invision/kit-image-deployer/status "Docker Repository on Quay")](https://quay.io/repository/invision/kit-image-deployer)
+[![npm version](https://badge.fury.io/js/kit-image-deployer.svg)](https://badge.fury.io/js/kit-image-deployer)
 [![Dependency Status](https://david-dm.org/InVisionApp/kit-image-deployer.svg)](https://david-dm.org/InVisionApp/kit-image-deployer)
 [![devDependency Status](https://david-dm.org/InVisionApp/kit-image-deployer/dev-status.svg)](https://david-dm.org/InVisionApp/kit-image-deployer#info=devDependencies)
 
