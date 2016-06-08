@@ -1,0 +1,15 @@
+# InVision .editorconfig v1.0.0
+# If improving this file, please be sure to update the original in the `invision-generate` repo too.
+
+# top-most EditorConfig file
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+indent_style = tab
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.md]
+trim_trailing_whitespace = false

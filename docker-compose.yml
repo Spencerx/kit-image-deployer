@@ -1,0 +1,6 @@
+app:
+  build: .
+  env_file:
+    - ./environment.env
+  volumes:
+    - ./src:/src
