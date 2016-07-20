@@ -53,7 +53,7 @@ class ImageDeployer {
 				.then(function(configResponse) {
 					var rawConfig = new Buffer(configResponse.content, configResponse.encoding).toString("ascii");
 					var config = yaml.safeLoad(rawConfig);
-					imageFilePath = path.join(config.images.path, self.options.docker.repo, branch + ".yaml");
+					imageFilePath = path.join(config.images.path.replace(/^\//, ""), self.options.docker.repo, branch + ".yaml");
 					property = config.images.property;
 
 					var imageRequest = {
