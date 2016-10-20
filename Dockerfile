@@ -7,6 +7,7 @@ RUN npm install
 # Set default environment variables
 ENV \
 	PATH=/src:/node_modules/.bin:$PATH\
+	RETRIES=10\
 	COMMIT=false
 
 # Copy our source files to the service location
