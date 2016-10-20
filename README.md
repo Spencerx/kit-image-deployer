@@ -106,7 +106,6 @@ The following environment variables are used by this service.
 | `CI_BRANCH` | The name of the branch | yes | *empty* |
 | `CI_COMMIT_ID` | The commit hash or ID (must provide this or `IMAGE`) | no | *empty* |
 | `IMAGE` | The full path and tag to the docker image (must provide this or `CI_COMMIT_ID`) | no | *empty* |
-| `RETRIES` | Specify the number of times you want to automatically retry the commit if it fails | yes | `10` |
 
 ## Contributing
 

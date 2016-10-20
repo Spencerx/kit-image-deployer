@@ -25,7 +25,6 @@ program
 	.option("--branch <branch>", "The name of the branch", process.env.CI_BRANCH)
 	.option("--commit-id <id>", "The commit hash or ID (must provide this or `--image`)", process.env.CI_COMMIT_ID)
 	.option("--image <image>", "The full path and tag to the docker image (must provide this or `--commit-id`)", process.env.IMAGE)
-	.option("--retries <retries>", "Specify the number of times you want to automatically retry the commit if it fails", parseInt(process.env.RETRIES))
 	.parse(process.argv)
 ;
 
@@ -43,7 +42,6 @@ if (!program.commitId && !program.image) {
 
 // Initialize Operation instance
 var imageDeployer = new ImageDeployer({
-	retries: program.retries,
 	github: {
 		token: program.githubAuthToken,
 		user: program.githubUser,
