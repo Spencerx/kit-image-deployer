@@ -93,7 +93,7 @@ class ImageDeployer {
 
 							// only continue saving if commit is enabled
 							if (!save) {
-								return "Commit disabled, but would have " + commitMsg;
+								return resolve("Commit disabled, but would have " + commitMsg);
 							}
 
 							self.github
@@ -110,6 +110,7 @@ class ImageDeployer {
 									resolve("Successfully " + commitMsg);
 								})
 								.catch((err) => {
+									// try again
 									attempt(err);
 								});
 						} else {
@@ -126,7 +127,7 @@ class ImageDeployer {
 
 							// only continue saving if commit is enabled
 							if (!save) {
-								return "Commit disabled, but would have " + commitMsg;
+								return resolve("Commit disabled, but would have " + commitMsg);
 							}
 
 							return self.github.createFile({
