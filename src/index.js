@@ -1,9 +1,9 @@
 "use strict";
 
-var ImageDeployer = require("./lib/image-deployer");
+const ImageDeployer = require("./lib/image-deployer");
 
-var KitImageDeployer = {
-	ImageDeployer: ImageDeployer
+const KitImageDeployer = {
+  ImageDeployer: ImageDeployer
 };
 
 module.exports = KitImageDeployer;

@@ -15,7 +15,8 @@
   "main": "./src/index.js",
   "bin": "./src/image-deployer",
   "scripts": {
-    "lint": "eslint src test",
+    "lint": "eslint src test scripts",
+    "format": "prettier -l '{src,test}/**/{image-deployer,*.js}'",
     "test": "mocha test --recursive"
   },
   "dependencies": {
@@ -28,6 +29,10 @@
   },
   "devDependencies": {
     "chai": "3.5.0",
+    "eslint": "4.16.0",
+    "eslint-config-prettier": "2.9.0",
+    "eslint-plugin-prettier": "2.5.0",
+    "prettier": "1.10.2",
     "mocha": "2.4.5"
   },
   "files": [

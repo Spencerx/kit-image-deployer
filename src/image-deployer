@@ -1,92 +1,142 @@
 #!/usr/bin/env node
 
-var ImageDeployer = require("./lib/image-deployer");
-var program = require("commander");
-var packageJson = require("../package.json");
-var logger = require("log4js").getLogger();
-var exit = process.exit;
+const ImageDeployer = require("./lib/image-deployer");
+const program = require("commander");
+const packageJson = require("../package.json");
+const logger = require("log4js").getLogger();
+const exit = process.exit;
 
-var parseBoolean = function(str) {
-	return (str === "true");
+const parseBoolean = function(str) {
+  return str === "true";
 };
 
 program
-	.version(packageJson.version)
-	.usage("[options]")
-	.option("-c, --commit <boolean>", "Set to true to commit changes to the repo.", parseBoolean, parseBoolean(process.env.COMMIT))
-	.option("--github-auth-token <token>", "Your github token to access the repo", process.env.GITHUB_AUTH_TOKEN)
-	.option("--github-user <user>", "The github user that the repo belongs to", process.env.GITHUB_USER)
-	.option("--github-repo <repo>", "The github repo name", process.env.GITHUB_REPO)
-	.option("--docker-registry <registry>", "The url for the docker registry", process.env.DOCKER_REGISTRY)
-	.option("--docker-repo <repo>", "The repo to use within the docker registry", process.env.DOCKER_REPO)
-	.option("--committer-name <name>", "The name of the person who committed the change", process.env.CI_COMMITTER_NAME)
-	.option("--committer-email <email>", "The email of the person who committed the change", process.env.CI_COMMITTER_EMAIL)
-	.option("--commit-message <message>", "The commit message", process.env.CI_COMMIT_MESSAGE)
-	.option("--branch <branch>", "The name of the branch", process.env.CI_BRANCH)
-	.option("--commit-id <id>", "The commit hash or ID (must provide this or `--image`)", process.env.CI_COMMIT_ID)
-	.option("--image <image>", "The full path and tag to the docker image (must provide this or `--commit-id`)", process.env.IMAGE)
-	.option("--retries <retries>", "Specify the number of times you want to automatically retry the commit if it fails", parseInt(process.env.RETRIES))
-	.parse(process.argv)
-;
+  .version(packageJson.version)
+  .usage("[options]")
+  .option(
+    "-c, --commit <boolean>",
+    "Set to true to commit changes to the repo.",
+    parseBoolean,
+    parseBoolean(process.env.COMMIT)
+  )
+  .option(
+    "--github-auth-token <token>",
+    "Your github token to access the repo",
+    process.env.GITHUB_AUTH_TOKEN
+  )
+  .option(
+    "--github-user <user>",
+    "The github user that the repo belongs to",
+    process.env.GITHUB_USER
+  )
+  .option(
+    "--github-repo <repo>",
+    "The github repo name",
+    process.env.GITHUB_REPO
+  )
+  .option(
+    "--docker-registry <registry>",
+    "The url for the docker registry",
+    process.env.DOCKER_REGISTRY
+  )
+  .option(
+    "--docker-repo <repo>",
+    "The repo to use within the docker registry",
+    process.env.DOCKER_REPO
+  )
+  .option(
+    "--committer-name <name>",
+    "The name of the person who committed the change",
+    process.env.CI_COMMITTER_NAME
+  )
+  .option(
+    "--committer-email <email>",
+    "The email of the person who committed the change",
+    process.env.CI_COMMITTER_EMAIL
+  )
+  .option(
+    "--commit-message <message>",
+    "The commit message",
+    process.env.CI_COMMIT_MESSAGE
+  )
+  .option("--branch <branch>", "The name of the branch", process.env.CI_BRANCH)
+  .option(
+    "--commit-id <id>",
+    "The commit hash or ID (must provide this or `--image`)",
+    process.env.CI_COMMIT_ID
+  )
+  .option(
+    "--image <image>",
+    "The full path and tag to the docker image (must provide this or `--commit-id`)",
+    process.env.IMAGE
+  )
+  .option(
+    "--retries <retries>",
+    "Specify the number of times you want to automatically retry the commit if it fails",
+    parseInt(process.env.RETRIES)
+  )
+  .parse(process.argv);
 
 // Check if we want to commit changes or not
 if (program.commit) {
-	logger.info("Commit enabled, will commit changes");
+  logger.info("Commit enabled, will commit changes");
 } else {
-	logger.info("Commit disabled, will NOT commit changes");
+  logger.info("Commit disabled, will NOT commit changes");
 }
 
 // Must provide commitId or image
 if (!program.commitId && !program.image) {
-	throw new Error("You must provide a 'commitId' OR an 'image'");
+  throw new Error("You must provide a 'commitId' OR an 'image'");
 }
 
 // Initialize Operation instance
 var imageDeployer = new ImageDeployer({
-	retries: program.retries,
-	github: {
-		token: program.githubAuthToken,
-		user: program.githubUser,
-		repo: program.githubRepo
-	},
-	docker: {
-		registry: program.dockerRegistry,
-		repo: program.dockerRepo
-	}
+  retries: program.retries,
+  github: {
+    token: program.githubAuthToken,
+    user: program.githubUser,
+    repo: program.githubRepo
+  },
+  docker: {
+    registry: program.dockerRegistry,
+    repo: program.dockerRepo
+  }
 });
 
 // Set committer info
 var committer = {
-	name: program.committerName,
-	email: program.committerEmail
+  name: program.committerName,
+  email: program.committerEmail
 };
 
 // Determine which operation method we need to use
 var method;
 if (program.image) {
-	method = imageDeployer.deployImage(
-		program.image,
-		program.branch,
-		committer,
-		program.commitMessage,
-		program.commit);
+  method = imageDeployer.deployImage(
+    program.image,
+    program.branch,
+    committer,
+    program.commitMessage,
+    program.commit
+  );
 } else {
-	method = imageDeployer.deployCommitId(
-		program.commitId,
-		program.branch,
-		committer,
-		program.commitMessage,
-		program.commit);
+  method = imageDeployer.deployCommitId(
+    program.commitId,
+    program.branch,
+    committer,
+    program.commitMessage,
+    program.commit
+  );
 }
 
 // Run operation to update the repo to point to the new image name
 method
-	.then(function(msg) {
-		logger.info(msg);
-		exit(0);
-	})
-	.catch(function(err) {
-		logger.fatal(err);
-		throw new Error(err);
-	})
-	.done();
+  .then(function(msg) {
+    logger.info(msg);
+    exit(0);
+  })
+  .catch(function(err) {
+    logger.fatal(err);
+    throw new Error(err);
+  })
+  .done();

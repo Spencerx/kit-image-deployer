@@ -2,14 +2,16 @@
   type: parallel
   encrypted_dockercfg_path: codeship-dockercfg.encrypted
   steps:
-    - name: Run help
+    - name: Help
       service: app
       command: --help
-    # TODO: disable eslint until eslint-config-invision package is public
-    # - name: Run lint tests
-    #   service: test
-    #   command: lint
-    - name: Run unit tests
+    - name: Format
+      service: test
+      command: format
+    - name: Lint
+      service: test
+      command: lint
+    - name: Unit
       service: test
       command: test
 
