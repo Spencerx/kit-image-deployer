@@ -5,6 +5,7 @@ const yaml = require("js-yaml");
 const _ = require("lodash");
 const path = require("path");
 const GitHubApi = require("github");
+const EventEmitter = require("events");
 
 class ImageDeployer {
   constructor(options) {
@@ -19,7 +20,8 @@ class ImageDeployer {
           token: undefined,
           user: undefined,
           repo: undefined
-        }
+        },
+        config: undefined
       },
       options
     );
@@ -36,6 +38,8 @@ class ImageDeployer {
       createFile: Promise.promisify(github.repos.createFile),
       updateFile: Promise.promisify(github.repos.updateFile)
     };
+
+    this.emitter = new EventEmitter();
   }
 
   deployCommitId(commitId, branch, committer, message, save) {
@@ -133,7 +137,18 @@ class ImageDeployer {
                   resolve("Successfully " + commitMsg);
                 })
                 .catch(err => {
-                  attempt(err);
+                  let errCode = err && err.code ? err.code : undefined;
+                  if (errCode && errCode >= 500) {
+                    // don't retry 500 errors
+                    reject(err);
+                  } else {
+                    self.emitter(
+                      "error",
+                      `Error updating image file status code ${errCode}, will retry after delay`
+                    );
+                    // try again after a delay
+                    self.retryAfterDelay(tries, err, attempt);
+                  }
                 });
             } else {
               resolve(
@@ -147,7 +162,8 @@ class ImageDeployer {
             }
           })
           .catch(err => {
-            if (err && err.code && err.code === 404) {
+            let errCode = err && err.code ? err.code : undefined;
+            if (errCode && errCode === 404) {
               // create file if it does not exist yet
               var newFile = {};
               newFile[property] = image;
@@ -167,6 +183,10 @@ class ImageDeployer {
                 return "Commit disabled, but would have " + commitMsg;
               }
 
+              self.emitter(
+                "info",
+                `Image file didn't exist creating image file`
+              );
               return self.github
                 .createFile({
                   user: self.options.github.user,
@@ -184,8 +204,17 @@ class ImageDeployer {
                   attempt(err);
                 });
             } else {
-              // try again
-              attempt(err);
+              if (errCode && errCode >= 500) {
+                // don't retry 500 errors
+                reject(err);
+              } else {
+                self.emitter(
+                  "error",
+                  `Error creating image file status code ${errCode}, will retry after delay`
+                );
+                // try again after a delay
+                self.retryAfterDelay(tries, err, attempt);
+              }
             }
           });
       }
@@ -198,6 +227,21 @@ class ImageDeployer {
   deployImage(image, branch, committer, message, save) {
     const self = this;
     return new Promise(function(resolve, reject) {
+      // if the config was provided via options, skip fetching it
+      if (this.options.config) {
+        self
+          .attemptCommit(
+            this.options.config,
+            image,
+            branch,
+            committer,
+            message,
+            save
+          )
+          .then(resolve)
+          .catch(reject);
+      }
+
       const configRequest = {
         user: self.options.github.user,
         repo: self.options.github.repo,
@@ -224,6 +268,20 @@ class ImageDeployer {
         .then(resolve)
         .catch(reject);
     });
+  }
+
+  /**
+   * Calls a function with a delay to back off a call due to an error
+   * @param {number} attempt - number of this attempt
+   * @param {object} err - the error object returned from our request
+   * @param {function} func - the function to call after the timeout
+   * @return {function} - Returns a setTimeout object calling the passed in object
+   */
+  retryAfterDelay(attempt, err, func) {
+    let retryDelay = attempt * 15 * 1000;
+    return setTimeout(() => {
+      return func(err);
+    }, retryDelay);
   }
 }
 
